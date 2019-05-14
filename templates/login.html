@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+ 
+{% block content %}
+    <h1>Авторизация</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {% if not is_known %}
+                <div class="alert alert-danger" role="alert">
+                    Ошибка! Такого пользователя не существует.
+                </div>
+        {% endif %}
+        {% if not is_correct_password %}
+                <div class="alert alert-danger" role="alert">
+                    Ошибка! Пароль неверный.
+                </div>
+        {% endif %}
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username }}<br>
+            {% for error in form.username.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password }}<br>
+            {% for error in form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}

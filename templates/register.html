@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+ 
+{% block content %}
+    <h1>Регистрация</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username.label }}<br>
+            {{ form.username }}<br>
+            {% if not correct %}
+                 <small id="stringHelpBlock" class="text-muted">
+      Пользователь с таким именем уже зарегистрирован в системе. Исправьте данные.
+    </small>
+            {% endif %}
+
+            {% for error in form.username.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password.label }}<br>
+            {{ form.password }}<br>
+            {% for error in form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password_confirm.label }}<br>
+            {{ form.password_confirm }}<br>
+            {% if not correct_p %}
+                 <small id="" class="text-muted">
+      Пароли не совпадают
+    </small>
+            {% endif %}
+            {% for error in form.password.errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
