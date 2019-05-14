@@ -42,6 +42,20 @@ def main():
     )
 
 
+class Tasks:
+    def __init__(self):
+        pass
+
+    def get_all(self):
+        pass
+
+    def get_by_id(self, id):
+        pass
+
+    def get_prosroch(self):
+        pass
+
+
 class Auth:
     def __init__(self):
         self.login = ''
@@ -57,6 +71,7 @@ class Auth:
 
 logging_in = 0
 auth = Auth()
+tasks = Tasks()
 
 
 # Функция для непосредственной обработки диалога.
@@ -81,7 +96,6 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Добро пожаловать в Индекс.Трекер! Войдите, чтобы начать работу. ' \
                                   'Назоваите свой логин.'
         logging_in = 1
-        res['response']['buttons'] = get_suggests(user_id)
         return
 
     if logging_in == 1:
@@ -104,31 +118,19 @@ def handle_dialog(req, res):
         return
     # Обрабатываем ответ пользователя.
     user_answer = req['request']['original_utterance']
-    if 'пока' in user_answer and 'задач' in user_answer:
+    if 'пока' in user_answer and 'задачи' in user_answer:
+        tasks.get_all()
         res['response']['text'] = "Вот ваши задачи:"
-
-
-# Функция возвращает две подсказки для ответа.
-def get_suggests(user_id):
-    session = sessionStorage[user_id]
-
-    # Выбираем две первые подсказки из массива.
-    suggests = [
-        {'title': suggest, 'hide': True}
-        for suggest in session['suggests'][:2]
-    ]
-
-    # Убираем первую подсказку, чтобы подсказки менялись каждый раз.
-    session['suggests'] = session['suggests'][1:]
-    sessionStorage[user_id] = session
-
-    # Если осталась только одна подсказка, предлагаем подсказку
-    # со ссылкой на Яндекс.Маркет.
-    if len(suggests) < 2:
-        suggests.append({
-            "title": "Ладно",
-            "url": "https://market.yandex.ru/search?text=слон",
-            "hide": True
-        })
-
-    return suggests
+    elif 'задачу' in user_answer:
+        try:
+            id = int(user_answer.split()[-1])
+        except Exception:
+            res['response']['text'] = 'Назовите корректный номер задачи'
+            return
+        tasks.get_by_id(id)
+        res['response']['text'] = "Вот информация по задаче № " + str(id)
+    elif 'пока' in user_answer and ('срок' in user_answer or 'сроч' in user_answer) and 'задачи' in user_answer:
+        tasks.get_prosroch()
+        res['response']['text'] = "Вот ваши просроченные задачи:"
+    else:
+        res['response']['text'] = 'К сожалению, я вас не понял. Повторите запрос'
