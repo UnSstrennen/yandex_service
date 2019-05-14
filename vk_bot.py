@@ -1,6 +1,7 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from random import randint
+from db import auth
 
 
 class VkBot:
@@ -21,14 +22,14 @@ class VkBot:
     # Функция обработки сообщения (на вход евент)
     def new_message(self, event):
         # Команда логина
-        if self.COMMANDS[0] in event.text:
+        if event.text.startswith(self.COMMANDS[0]):
             info = event.text.split()
             if len(info) != 3:
                 self.write_msg(event.user_id, 'Неправильно ввели команду. Пример: /auth my_login my_password')
                 return 'error'
-            self.sending_info({'type': 'logs', 'login': info[1], 'password': info[2], 'user_id': event.user_id})
+
             # Получение ответа result = ответ
-            result = 'Good_log'
+            result = self.sending_info({'type': 'logs', 'login': info[1], 'password': info[2], 'user_id': event.user_id})
             type_errors = {'Good_log': 'Вы успешно вышли.',
                            'No_user': 'К сожалению такого пользователя в системе нет.',
                            'Bad_log': 'Неверных логин или пароль. Попробуйте проверить введённыые данные.'}
@@ -62,6 +63,18 @@ class VkBot:
             self.listen_for_add = True
             self.write_msg(event.user_id, 'Введите название задачи')
 
+        elif event.text.startswith(self.COMMANDS[4]):
+            info = event.text.split()
+            if len(info) != 3:
+                self.write_msg(event.user_id, 'Неправильно ввели команду. Пример: /gelegate_task id_task user_name')
+                return 'error'
+            self.sending_info({'type': 'retasks', 'id_task': info[1], 'user_name': info[2], 'user_id': event.user_id})
+            # Получение ответа result = ответ
+            result = 'Good'
+            type_errors = {'Good': 'Всё хорошо.',
+                           'Bad': 'Упс. Что-то не так'}
+            self.write_msg(event.user_id, type_errors[result])
+
         elif self.listen_for_add:
             self.new_task.append(event.text)
             otv = {1: 'Введите описание зачади', 2: 'Введите категорию задачи',
@@ -71,8 +84,6 @@ class VkBot:
                 self.listen_for_add = False
                 self.new_task = []
                 # Отправить всё на серв
-
-
         else:
             self.write_msg(event.user_id, 'Простите, я не понял.')
 
@@ -84,7 +95,8 @@ class VkBot:
 
     # Функция для отправки данных на сервер
     def sending_info(self, info):
-        return info
+
+        return auth(info)
         # !!!Добавить отправку кода на серв
 
 
