@@ -13,4 +13,5 @@ for event in longpoll.listen():
         if event.to_me:
             if event.user_id not in users:
                 users[event.user_id] = VkBot()
+            print(event.user_id, type(event.user_id))
             users[event.user_id].new_message(event)

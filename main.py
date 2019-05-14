@@ -8,10 +8,16 @@ from wtforms.validators import DataRequired
 from flask import Flask, url_for, request, render_template, redirect, session
 
 
+root = False
+
+
 class VkBot:
     def __init__(self):
+        global root
         self.listen_for_add = False
-        self.root = False
+        self.root = root
+        self.tasks = [{'name': 'Поесть', 'id': 34, 'date': '11 мая'},
+                      {'name': 'Купить подарок', 'id': 46, 'date': ''}]
         self.new_task = []
         # Токен группы
         TOKEN = 'd746d9d6bd0237b45bc55bd32d55197ceaaa3bb4103dae63d4df1e19063776687a87123e0b94cf6d42dc8'
@@ -25,7 +31,9 @@ class VkBot:
 
     # Функция обработки сообщения (на вход евент)
     def new_message(self, event):
+        global root
         # Команда логина
+        print(event.user_id)
         if event.text.startswith(self.COMMANDS[0]):
             info = event.text.split()
             if len(info) != 3:
@@ -40,8 +48,14 @@ class VkBot:
             self.write_msg(event.user_id, type_errors[result])
             if result == 'Good_log':
                 self.root = True
+                root = True
+                ses('username', info[1])
+                # session['vk_id'] = event.user_id
                 um.update_vk(info[1], event.user_id)
+                #vreturn redirect('/confirm_code')
             return type_errors[result]
+        elif event.text == 'root':
+            self.write_msg(event.user_id, str(root))
         elif not self.root:
             self.write_msg(event.user_id, 'Авторизуйтесь (/auth)')
 
@@ -49,16 +63,16 @@ class VkBot:
             # ЗАПРОСИТЬ ОТ СЕРВА ДАННЫЕ О ЗАДАЧАх в переменную info
 
             # Создание текстового ответа
-            info = [{'name': 'Учится', 'id': 2, 'date': 11}, {'name': 'Sleep', 'id': 46, 'date': 56}]
             self.write_msg(event.user_id, 'Список ваших задач'+'\n\n'.join(["""
             Название задачи: {}
             Id задачи: {}
-            Дедлайн задачи: {}""".format(i['name'], str(i['id']), i['date']) for i in info]))
+            Дедлайн задачи: {}""".format(i['name'], str(i['id']), i['date']) for i in self.tasks]))
 
         elif self.COMMANDS[2] == event.text and self.root:
             # ЗАПРОСИТЬ ОТ СЕРВА ДАННЫЕ О ЗАДАЧАх просроченных в переменную info
             # Создание текстового ответа
-            info = [{'name': 'Учится', 'id': 2, 'date': 11}, {'name': 'Sleep', 'id': 46, 'date': 56}]
+            info = [{'name': 'Выучить алгебру', 'id': 2, 'date': '11 апреля'},
+                    {'name': 'Выспаться', 'id': 1, 'date': '1 мая'}]
             self.write_msg(event.user_id, 'Список просроченных задач'+'\n\n'.join(["""
             Название задачи: {}
             Id задачи: {}
@@ -71,7 +85,7 @@ class VkBot:
         elif event.text.startswith(self.COMMANDS[4]):
             info = event.text.split()
             if len(info) != 3:
-                self.write_msg(event.user_id, 'Неправильно ввели команду. Пример: /gelegate_task id_task user_name')
+                self.write_msg(event.user_id, 'Неправильно ввели команду. Пример: /delegate_task id_task user_name')
                 return 'error'
 
             # Получение ответа result = ответ
@@ -83,10 +97,11 @@ class VkBot:
         elif self.listen_for_add:
             self.new_task.append(event.text)
             otv = {1: 'Введите описание задачи', 2: 'Введите категорию задачи',
-                   3: 'Введите дедлайн задачи(Час:минуты число/месяц/год)', 4: 'Задача создана'}
+                   3: 'Введите дедлайн задачи', 4: 'Задача создана'}
             self.write_msg(event.user_id, otv[len(self.new_task)])
             if len(self.new_task) == 4:
                 self.listen_for_add = False
+                self.tasks.append({'name': self.new_task[0], 'id': str(randint(1, 9)), 'date': self.new_task[3]})
                 self.new_task = []
                 # Отправить всё на серв
         else:
@@ -97,6 +112,7 @@ class VkBot:
         code = str(randint(10000, 99999))
         self.write_msg(user_id, 'Ваш код: '+code)
         return auth({'type': 'authentication', 'code': code, 'user_id': user_id})
+
 
 
 class LoginForm(FlaskForm):
@@ -129,11 +145,16 @@ def auth(dit):
         elif not exists[0]:
             return 'Bad_log'
         else:
-            print(dit['login'])
-            #session['username'] = dit['login']
-            #session['user_id'] = exists[1]
+            # session['username'] = dit['login']
+            # session['user_id'] = exists[1]
             return 'Good_log'
     elif dit['type'] == 'authentication':
+        confirm_code = dit['code']
+        return redirect('/confirm_code')
+
+
+class AliceHandler:
+    def __init__(self):
         pass
 
 
@@ -209,6 +230,7 @@ def confirm_code():
     global confirm_code
     form = CodeConfirmForm()
     code = form.code.data
+    confirm_code = VkBot.authentication(  )
     if code == confirm_code:
         redirect('/index')
     else:
