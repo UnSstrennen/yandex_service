@@ -103,7 +103,7 @@ def handle_dialog(req, res):
             logging_in = 0
         return
     # Обрабатываем ответ пользователя.
-    user_answer = req['response']['original_utterance']
+    user_answer = req['request']['original_utterance']
     if 'пока' in user_answer and 'задач' in user_answer:
         res['response']['text'] = "Вот ваши задачи:"
 
