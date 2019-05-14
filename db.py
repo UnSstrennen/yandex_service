@@ -22,7 +22,10 @@ class UsersModel:
         cursor.execute('''CREATE TABLE IF NOT EXISTS users 
                             (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                              user_name VARCHAR(50),
-                             password_hash VARCHAR(128))''')
+                             password_hash VARCHAR(128),
+                             vk_id VARCHAR(100),
+                             alice_id VARCHAR(100)
+                             )''')
         cursor.close()
         self.connection.commit()
 
@@ -65,6 +68,13 @@ class UsersModel:
         cursor.execute('''INSERT INTO users 
                           (user_name, password_hash) 
                           VALUES (?,?)''', (user_name, password_hash))
+        cursor.close()
+        self.connection.commit()
+
+    def update_vk(self, username, vk_id):
+        cursor = self.connection.cursor()
+        print('UPDATE users SET vk_id={} WHERE user_name={}'.format(vk_id, username))
+        cursor.execute('UPDATE users SET vk_id = ? WHERE user_name = ?', (str(vk_id), username))
         cursor.close()
         self.connection.commit()
 

@@ -40,6 +40,7 @@ class VkBot:
             self.write_msg(event.user_id, type_errors[result])
             if result == 'Good_log':
                 self.root = True
+                um.update_vk(info[1], event.user_id)
             return type_errors[result]
         elif not self.root:
             self.write_msg(event.user_id, 'Авторизуйтесь (/auth)')
@@ -175,7 +176,8 @@ def login():
         if form.validate_on_submit():
             session['username'] = user_name
             session['user_id'] = exists[1]
-            # confirm_code = VkBot.authentication()
+            user_id = exists[1]
+
             return redirect("/index")
     else:
         return render_template('login.html', title='Авторизация', form=form, is_correct_password=False,
